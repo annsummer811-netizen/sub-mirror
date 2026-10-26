@@ -1,0 +1,62 @@
+name: Universal Subscriptions Mirror Hub
+
+on:
+  schedule:
+    # Запуск каждые 5 минут
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all subscriptions separately and push to GitVerse
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Клонируем ваш GitVerse
+          git clone https://${{ secrets.GV_TOKEN }}@gitverse.ru/${{ secrets.GV_USERNAME }}/sub-mirror.git gv-repo
+          cd gv-repo
+
+          # --- СКАЧИВАНИЕ КАЖДОЙ ПОДПИСКИ В СВОЙ ОТДЕЛЬНЫЙ ФАЙЛ ---
+
+          # 1. WLUnlocker
+          curl -sSL "https://raw.githubusercontent.com/wlunlocker/vpn-configs/main/whitelist_all.txt" -o wlunlocker.txt
+
+          # 2. Kizyak VPN (JSON)
+          curl -sSL "https://raw.githubusercontent.com/Maskkost93/kizyak-vpn-4.0/main/kizyakbeta8.json" -o kizyakbeta8.json
+
+          # 3. Aviamasters: Проверенные
+          curl -sSL "https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/verified_configs.txt" -o avia_verified.txt
+
+          # 4. Aviamasters: RU конфиги
+          curl -sSL "https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/ru_configs.txt" -o avia_ru.txt
+
+          # 5. Aviamasters: Все конфиги
+          curl -sSL "https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/all_configs.txt" -o avia_all.txt
+
+          # 6. Aetris VPN
+          curl -sSL "https://raw.githubusercontent.com/flaafix/AetrisVPN/main/AetrisVPN.txt" -o aetris.txt
+
+          # 7. Бункер White List (Mos.ru)
+          curl -sSL "https://hub.mos.ru/akelladejavu/bunker/-/raw/main/WHITE_LIST.txt" -o bunker_whitelist.txt
+
+          # --- СОХРАНЕНИЕ НА GITVERSE ---
+          git add .
+          git commit -m "Auto-update subscriptions separately" || exit 0
+          git push
+
+      - name: Daily Keepalive (вечный автопилот раз в сутки)
+        run: |
+          # Сброс таймера активности раз в сутки (в полночь по UTC)
+          if [ "$(date +%H)" = "00" ] && [ "$(date +%-M)" -lt 10 ]; then
+            git commit --allow-empty -m "daily keepalive ping" || true
+            git push origin main || true
+          fi
