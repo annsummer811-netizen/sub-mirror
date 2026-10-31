@@ -1,29 +1,25 @@
-- name: Download configs and push to GitVerse
-    run: |
-      git config --global user.name "GitHub Action Bot"
-      git config --global user.email "action@github.com"
+name: Subscriptions Mirror to GitVerse
 
-      # 1. Скачиваем конфиги
-      curl -sSL "https://raw.githubusercontent.com/wlunlocker/vpn-configs/main/whitelist_all.txt" -o wlunlocker.txt
-      curl -sSL "https://raw.githubusercontent.com/Maskkost93/kizyak-vpn-4.0/main/kizyakbeta8.json" -o kizyakbeta8.json
-      curl -sSL "https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/verified_configs.txt" -o avia_verified.txt
-      curl -sSL "https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/ru_configs.txt" -o avia_ru.txt
-      curl -sSL "https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/all_configs.txt" -o avia_all.txt
-      curl -sSL "https://raw.githubusercontent.com/flaafix/AetrisVPN/main/AetrisVPN.txt" -o aetris.txt
-      curl -sSL "https://hub.mos.ru/akelladejavu/bunker/-/raw/main/WHITE_LIST.txt" -o bunker_whitelist.txt
+on:
+  schedule:
+    - cron: '*/20 * * * *'
+  workflow_dispatch:
 
-      # 2. Настраиваем отправку на GitVerse
-      git init gv-sync
-      cd gv-sync
-      git config user.name "GitHub Action Bot"
-      git config user.email "action@github.com"
-      
-      # Копируем скачанные файлы
-      cp ../*.txt ../*.json . 2>/dev/null || true
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      git checkout -b master
-      git add .
-      git commit -m "Auto update whitelist: $(date +'%Y-%m-%d %H:%M:%S MSK')" || exit 0
+      - name: Download configs and push to GitVerse
+        run: |
+          git config --global user.name "GitHub Action Bot"
+          git config --global user.email "action@github.com"
 
-      # Отправляем на GitVerse через защищённый токен
-      git push --force https://${{ secrets.GV_TOKEN }}@gitverse.ru/${{ secrets.GV_USERNAME }}/sub-mirror.git master
+          # 1. Скачиваем конфиги
+          curl -sSL "https://raw.githubusercontent.com/wlunlocker/vpn-configs/main/whitelist_all.txt" -o wlunlocker.txt
+          curl -sSL "https://raw.githubusercontent.com/Maskkost93/kizyak-vpn-4.0/main/kizyakbeta8.json" -o kizyakbeta8.json
+          curl -sSL "https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/verified_configs.txt" -o avia_verified.txt
+          curl -sSL "https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/ru_configs.txt" -o avia_ru.txt
+          curl -sSL "https://raw.githubusercontent.com/aviamastersgh/vpn-free-
