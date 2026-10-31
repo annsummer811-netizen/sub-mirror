@@ -9,17 +9,23 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download configs and push to GitVerse
+      - name: Download and push
         run: |
-          git config --global user.name "GitHub Action Bot"
-          git config --global user.email "action@github.com"
+          mkdir -p out
+          cd out
 
-          # 1. Скачиваем конфиги
-          curl -sSL "https://raw.githubusercontent.com/wlunlocker/vpn-configs/main/whitelist_all.txt" -o wlunlocker.txt
-          curl -sSL "https://raw.githubusercontent.com/Maskkost93/kizyak-vpn-4.0/main/kizyakbeta8.json" -o kizyakbeta8.json
-          curl -sSL "https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/verified_configs.txt" -o avia_verified.txt
-          curl -sSL "https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/ru_configs.txt" -o avia_ru.txt
-          curl -sSL "https://raw.githubusercontent.com/aviamastersgh/vpn-free-
+          curl -fsSL https://raw.githubusercontent.com/wlunlocker/vpn-configs/main/whitelist_all.txt -o wlunlocker.txt || true
+          curl -fsSL https://raw.githubusercontent.com/Maskkost93/kizyak-vpn-4.0/main/kizyakbeta8.json -o kizyakbeta8.json || true
+          curl -fsSL https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/verified_configs.txt -o avia_verified.txt || true
+          curl -fsSL https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/ru_configs.txt -o avia_ru.txt || true
+          curl -fsSL https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/all_configs.txt -o avia_all.txt || true
+          curl -fsSL https://raw.githubusercontent.com/flaafix/AetrisVPN/main/AetrisVPN.txt -o aetris.txt || true
+          curl -fsSL https://hub.mos.ru/akelladejavu/bunker/-/raw/main/WHITE_LIST.txt -o bunker_whitelist.txt || true
+
+          git init
+          git config user.name "GitHub Action Bot"
+          git config user.email "action@github.com"
+          git checkout -b master
+          git add .
+          git commit -m "Auto update whitelist" || exit 0
+          git push --force https://${{ secrets.GV_USERNAME }}:${{ secrets.GV_TOKEN }}@gitverse.ru/${{ secrets.GV_USERNAME }}/sub-mirror.git master
