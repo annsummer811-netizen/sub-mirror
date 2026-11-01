@@ -1,34 +1,32 @@
-name: Instant Subscriptions Mirror
+name: Subscriptions Mirror to GitVerse
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+  schedule:
+    # Будильник: запуск сам по себе каждые 20 минут (в 7, 27 и 47 минут)
+    - cron: '7,27,47 * * * *'
+  
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Download and push all files
+      - name: Download and push
         run: |
           mkdir -p out
           cd out
 
-          # Скачиваем ВСЕ ваши файлы (и JSON, и все текстовые списки)
-          curl -fsSL "https://raw.githubusercontent.com/wlunlocker/vpn-configs/main/whitelist_all.txt" -o wlunlocker.txt || true
-          curl -fsSL "https://raw.githubusercontent.com/Maskkost93/kizyak-vpn-4.0/main/kizyakbeta8.json" -o kizyakbeta8.json || true
-          curl -fsSL "https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/verified_configs.txt" -o avia_verified.txt || true
-          curl -fsSL "https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/ru_configs.txt" -o avia_ru.txt || true
-          curl -sSL "https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/all_configs.txt" -o avia_all.txt || true
-          curl -fsSL "https://raw.githubusercontent.com/flaafix/AetrisVPN/main/AetrisVPN.txt" -o aetris.txt || true
-          curl -fsSL "https://hub.mos.ru/akelladejavu/bunker/-/raw/main/WHITE_LIST.txt" -o bunker_whitelist.txt || true
+          curl -fsSL https://raw.githubusercontent.com/wlunlocker/vpn-configs/main/whitelist_all.txt -o wlunlocker.txt || true
+          curl -fsSL https://raw.githubusercontent.com/Maskkost93/kizyak-vpn-4.0/main/kizyakbeta8.json -o kizyakbeta8.json || true
+          curl -fsSL https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/verified_configs.txt -o avia_verified.txt || true
+          curl -fsSL https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/ru_configs.txt -o avia_ru.txt || true
+          curl -fsSL https://raw.githubusercontent.com/aviamastersgh/vpn-free-russia/main/all_configs.txt -o avia_all.txt || true
+          curl -fsSL https://raw.githubusercontent.com/flaafix/AetrisVPN/main/AetrisVPN.txt -o aetris.txt || true
+          curl -fsSL https://hub.mos.ru/akelladejavu/bunker/-/raw/main/WHITE_LIST.txt -o bunker_whitelist.txt || true
 
-          # Отправляем всё на GitVerse мгновенно
           git init
           git config user.name "GitHub Action Bot"
           git config user.email "action@github.com"
           git checkout -b master
           git add .
-          git commit -m "Instant update: $(date +'%H:%M:%S')" || exit 0
-          git push --force "https://${{ secrets.GV_TOKEN }}@gitverse.ru/${{ secrets.GV_USERNAME }}/sub-mirror.git" master
+          git commit -m "Auto update whitelist" || exit 0
+          git push --force https://${{ secrets.GV_USERNAME }}:${{ secrets.GV_TOKEN }}@gitverse.ru/${{ secrets.GV_USERNAME }}/sub-mirror.git master
