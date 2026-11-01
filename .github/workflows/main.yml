@@ -1,11 +1,10 @@
+
 name: Subscriptions Mirror to GitVerse
 
 on:
   schedule:
     # Будильник: запуск сам по себе каждые 20 минут (в 7, 27 и 47 минут)
     - cron: '7,27,47 * * * *'
-  
-
 jobs:
   sync:
     runs-on: ubuntu-latest
